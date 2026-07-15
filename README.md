@@ -1,6 +1,6 @@
 # pyHRG
 
-<img src="https://raw.githubusercontent.com/igorpawelec/pyhrg/main/www/logopy.png" alt="pyHRG logo" align="right" width="120"/>
+<img src="https://raw.githubusercontent.com/igorpawelec/pyhrg/main/www/logopy.png" alt="pyHRG logo" align="right" width="200"/>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org)
