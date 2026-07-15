@@ -1,0 +1,42 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: py${{ matrix.python-version }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge
+          auto-activate-base: false
+          activate-environment: pyhrg-ci
+
+      - name: Install dependencies
+        shell: bash -el {0}
+        run: |
+          conda install -y -c conda-forge numpy numba scipy scikit-image \
+            rasterio fiona pytest affine pyflakes
+          pip install --no-deps -e .
+
+      - name: Lint
+        shell: bash -el {0}
+        run: pyflakes pyhrg/*.py
+
+      - name: Test
+        shell: bash -el {0}
+        run: pytest tests/ -v

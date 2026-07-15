@@ -1,0 +1,151 @@
+cff-version: "1.2.0"
+message: "If you use this software, please cite it as below."
+title: "pyHRG: individual tree crown delineation from canopy height models by Hierarchical Region Growing"
+abstract: >-
+  pyHRG delineates individual tree crowns from a canopy height model. Tree
+  tops seed a marker-based watershed; the resulting regions form a
+  weighted region adjacency graph; crowns then grow greedily under a
+  height-variance constraint, merging neighbouring trees where the canopy
+  does not separate them. Contested canopy is arbitrated on the data, so
+  the segmentation is reproducible regardless of tree-top order.
+type: software
+version: "0.1.0"
+date-released: "2026-07-15"
+license: "GPL-3.0-or-later"
+repository-code: "https://github.com/igorpawelec/pyhrg"
+authors:
+  - family-names: "Pawelec"
+    given-names: "Igor"
+    orcid: "https://orcid.org/0009-0005-9798-3596"
+    affiliation: "University of Agriculture in Krakow, Faculty of Forestry"
+keywords:
+  - tree crown delineation
+  - individual tree segmentation
+  - canopy height model
+  - region growing
+  - watershed
+  - lidar
+  - forestry
+  - remote sensing
+
+references:
+  # Heritage: pyHRG began as a fork of PyCrown, whose pipeline structure
+  # (smooth CHM -> local-maxima tree tops -> crown delineation) it keeps.
+  # PyCrown's Dalponte & Coomes delineation is not part of pyHRG.
+  - type: software
+    title: "PyCrown - Fast raster-based individual tree segmentation for LiDAR data"
+    authors:
+      - family-names: "Zörner"
+        given-names: "Jan"
+      - family-names: "Dymond"
+        given-names: "John"
+      - family-names: "Shepherd"
+        given-names: "James"
+      - family-names: "Jolly"
+        given-names: "Ben"
+    year: 2018
+    publisher:
+      name: "Landcare Research NZ Ltd"
+    doi: "10.7931/M0SR-DN55"
+    license: "GPL-3.0-only"
+    notes: "Upstream project; pyHRG is a derivative work and inherits GPLv3."
+
+  - type: article
+    title: "LiDAR-based regional inventory of tall trees - Wellington, New Zealand"
+    authors:
+      - family-names: "Zörner"
+        given-names: "Jan"
+      - family-names: "Dymond"
+        given-names: "John R."
+      - family-names: "Shepherd"
+        given-names: "James D."
+      - family-names: "Wiser"
+        given-names: "Susan K."
+      - family-names: "Bunting"
+        given-names: "Pete"
+      - family-names: "Jolly"
+        given-names: "Ben"
+    journal: "Forests"
+    volume: 9
+    issue: 11
+    start: 702
+    year: 2018
+    doi: "10.3390/f9110702"
+
+  # Region statistics are combined pairwise, not with Welford's
+  # single-sample update: a crown absorbs a whole region at a time.
+  - type: article
+    title: "Algorithms for computing the sample variance: analysis and recommendations"
+    authors:
+      - family-names: "Chan"
+        given-names: "Tony F."
+      - family-names: "Golub"
+        given-names: "Gene H."
+      - family-names: "LeVeque"
+        given-names: "Randall J."
+    journal: "The American Statistician"
+    volume: 37
+    issue: 3
+    start: 242
+    end: 247
+    year: 1983
+    doi: "10.1080/00031305.1983.10483115"
+
+  # Marker-based watershed, via scikit-image.
+  - type: generic
+    title: "The morphological approach to segmentation: the watershed transformation"
+    authors:
+      - family-names: "Beucher"
+        given-names: "Serge"
+      - family-names: "Meyer"
+        given-names: "Fernand"
+    collection-title: "Mathematical Morphology in Image Processing"
+    publisher:
+      name: "Marcel Dekker"
+    start: 433
+    end: 481
+    year: 1993
+
+  # Local-maxima tree detection on a smoothed CHM.
+  - type: article
+    title: >-
+      Seeing the trees in the forest: using lidar and multispectral data
+      fusion with local filtering and variable window size for estimating
+      tree height
+    authors:
+      - family-names: "Popescu"
+        given-names: "Sorin C."
+      - family-names: "Wynne"
+        given-names: "Randolph H."
+    journal: "Photogrammetric Engineering & Remote Sensing"
+    volume: 70
+    issue: 5
+    start: 589
+    end: 604
+    year: 2004
+    doi: "10.14358/PERS.70.5.589"
+
+  - type: article
+    title: "scikit-image: image processing in Python"
+    authors:
+      - family-names: "van der Walt"
+        given-names: "Stéfan"
+      - family-names: "Schönberger"
+        given-names: "Johannes L."
+      - family-names: "Nunez-Iglesias"
+        given-names: "Juan"
+      - family-names: "Boulogne"
+        given-names: "François"
+      - family-names: "Warner"
+        given-names: "Joshua D."
+      - family-names: "Yager"
+        given-names: "Neil"
+      - family-names: "Gouillart"
+        given-names: "Emmanuelle"
+      - family-names: "Yu"
+        given-names: "Tony"
+    journal: "PeerJ"
+    volume: 2
+    start: "e453"
+    year: 2014
+    doi: "10.7717/peerj.453"
