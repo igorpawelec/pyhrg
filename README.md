@@ -229,7 +229,7 @@ If you use pyHRG in your research, please cite the software and the work it buil
 >
 > Beucher, S., Meyer, F. (1993). The morphological approach to segmentation: the watershed transformation. In: *Mathematical Morphology in Image Processing*, 433–481. — the marker-based watershed, via scikit-image.
 >
-> Popescu, S.C., Wynne, R.H. (2004). Seeing the trees in the forest. *Photogrammetric Engineering & Remote Sensing* 70(5), 589–604. — local-maxima tree detection on a smoothed CHM.
+> Popescu, S.C., Wynne, R.H. (2004). Seeing the Trees in the Forest: Using Lidar and Multispectral Data Fusion with Local Filtering and Variable Window Size for Estimating Tree Height. *Photogrammetric Engineering & Remote Sensing* 70(5), 589–604. — local-maxima tree detection on a smoothed CHM.
 
 See [CITATION.cff](CITATION.cff) for machine-readable metadata.
 
