@@ -116,7 +116,11 @@ def _build_adjacency_and_stats(labels, chm, num_regions):
             lab = labels[r, c]
             if lab <= 0:
                 continue
-            v = chm[r, c]
+            # float64 before squaring: the CHM is stored as float32 to
+            # halve memory, but v*v would then be evaluated in float32 and
+            # lose ~6 orders of magnitude of accuracy in the variance, which
+            # sum2/n - mean^2 is already prone to losing to cancellation.
+            v = np.float64(chm[r, c])
             reg_n[lab] += 1
             reg_sum[lab] += v
             reg_sum2[lab] += v * v

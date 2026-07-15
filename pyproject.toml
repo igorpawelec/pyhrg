@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "Individual tree crown delineation from canopy height models by Hierarchical Region Growing"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "GPL-3.0-or-later" }
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 authors = [
     { name = "Igor Pawelec", email = "igor.pawelec@urk.edu.pl" },
 ]
@@ -31,7 +32,6 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -66,8 +66,10 @@ Changelog = "https://github.com/igorpawelec/pyhrg/blob/main/CHANGELOG.md"
 [project.scripts]
 pyhrg = "pyhrg.cli:main"
 
-[tool.setuptools]
-packages = ["pyhrg"]
+[tool.setuptools.packages.find]
+# Explicit, so setuptools never has to guess from the flat layout: tests/
+# and examples/ are not shipped, and any future subpackage is picked up.
+include = ["pyhrg*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

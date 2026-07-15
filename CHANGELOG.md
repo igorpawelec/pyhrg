@@ -57,6 +57,16 @@ First release. pyHRG supersedes `pycrown_simplified`, which is archived.
 - Dead code removed: an unused inverse-statistics helper, an unused loop
   variable in the merge formula, and a branch that could never be taken.
 
+### Packaging
+- Licence declared as an SPDX expression with `license-files` (PEP 639)
+  rather than a TOML table, which setuptools deprecated and will stop
+  accepting on 2027-02-18. The redundant licence classifier is gone.
+  Requires setuptools >= 77 to build.
+- Packages resolved with an explicit `find` directive rather than a
+  hard-coded list, so `tests/` and `examples/` are never shipped and any
+  future subpackage is picked up instead of being silently dropped.
+  Reported against `pycrown_simplified` by Bas van Driel.
+
 ### Removed
 - **Dalponte & Coomes delineation.** It is well covered by
   [PyCrown](https://github.com/manaakiwhenua/pycrown),

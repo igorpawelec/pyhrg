@@ -23,6 +23,11 @@ pip install --no-deps -e ".[dev]"
 pytest tests/ -v
 ```
 
+The build needs setuptools >= 77: the licence is declared as an SPDX
+expression (PEP 639), which older versions do not understand. pip installs
+its own build environment, so this only bites if you build with
+`--no-build-isolation`.
+
 ## Pull requests
 
 - Add a test that fails before your change and passes after.
