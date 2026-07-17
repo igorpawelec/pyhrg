@@ -1,4 +1,4 @@
-# pyHRG
+# PyHRG
 
 <img src="https://raw.githubusercontent.com/igorpawelec/pyhrg/main/www/logopy.png" alt="pyHRG logo" align="right" width="200"/>
 
