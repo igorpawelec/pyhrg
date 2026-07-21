@@ -9,7 +9,7 @@
 
 Pure Python + Numba. No compiled extensions, no external binaries.
 
-> **R users:** an R implementation of the same algorithm lives in [rHRG](https://github.com/igorpawelec/rhrg). The two are separate packages by design — installation, tooling and idioms differ too much to share a repository — but they implement the same method and are validated against each other.
+> **R users:** an R implementation of the same algorithm lives in [rHRG](https://github.com/igorpawelec/rhrg). The two are separate packages by design — installation, tooling and idioms differ too much to share a repository — but they implement the same method and are validated against each other — exactly on the shared synthetic suite, and to within 0.25 % of watershed pixels on real canopy height models, where the two break plateau ties differently.
 
 ## Background
 
