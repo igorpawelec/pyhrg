@@ -271,7 +271,15 @@ def save_tree_tops(corrected_tops: np.ndarray,
         schema=schema
     ) as dst:
         for idx, (r, c) in enumerate(coords):
-            x, y = transform * (float(c), float(r))
+            # +0.5 puts the point at the pixel's centre. An affine transform
+            # maps grid coordinates where whole numbers land on pixel
+            # *corners*, while a tree top from center_of_mass is an array
+            # index, and array indices refer to pixel centres. Without the
+            # shift every exported point sat half a pixel up and to the left
+            # -- 0.25 m on the 0.5 m test rasters, systematic, and enough to
+            # matter when comparing against field-measured stems. This is
+            # what rasterio.transform.xy does.
+            x, y = transform * (float(c) + 0.5, float(r) + 0.5)
             geom = {"type": "Point", "coordinates": (x, y)}
             dst.write({
                 'geometry': geom,

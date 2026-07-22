@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.4.0] — 2026-07-22
+
+### Fixed
+- **Exported tree tops sat half a pixel up and to the left.**
+  `save_tree_tops()` mapped a top through `transform * (col, row)`, but an
+  affine transform treats whole numbers as pixel *corners* while a top from
+  `center_of_mass` is an array index, and array indices refer to pixel
+  centres. Every exported point was therefore offset by half a pixel — 0.25 m
+  on the 0.5 m test rasters, systematic, and enough to matter when comparing
+  against field-measured stems. Now matches `rasterio.transform.xy`, verified
+  on a whole-pixel and a subpixel top.
+
+  Polygons were never affected: `save_segments()` goes through
+  `rasterio.features.shapes`, which handles the convention itself. So points
+  and polygons disagreed with each other.
+- **`delineate()` under-reported the crown count by one when the scene had no
+  background.** It computed `len(np.unique(crowns)) - 1`, subtracting for a
+  label 0 that is absent whenever `mask_thresh` sits below the CHM's minimum.
+  Two crowns were announced as one. The returned array was always correct;
+  only the printed number was wrong.
+
+
 ## [0.3.0] — 2026-07-22
 
 ### Changed

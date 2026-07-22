@@ -34,9 +34,9 @@ try:
     try:
         __version__ = version("pyhrg")
     except PackageNotFoundError:  # not installed, e.g. running from source
-        __version__ = "0.3.0"
+        __version__ = "0.4.0"
 except ImportError:  # pragma: no cover
-    __version__ = "0.3.0"
+    __version__ = "0.4.0"
 
 __author__ = "Igor Pawelec"
 __license__ = "GPLv3"

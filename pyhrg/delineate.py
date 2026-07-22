@@ -195,7 +195,13 @@ class CrownDelineator:
             n_jobs=n_jobs,
         ).astype(np.int32)
 
-        n_crowns = len(np.unique(self.crowns)) - 1
+        # Count the labels that are crowns, rather than subtracting one for
+        # a background that may not be there. With mask_thresh below the
+        # CHM's minimum every pixel is canopy, no 0 appears, and the old
+        # form under-reported by exactly one -- two crowns announced as one.
+        # The returned array was always right; only the number a user reads
+        # was wrong.
+        n_crowns = len(set(np.unique(self.crowns)) - {0})
         merged = len(seeds) - n_crowns
         extra = f", {merged} merged" if merged > 0 else ""
         self._say(f"delineate: {n_crowns} crowns{extra} "

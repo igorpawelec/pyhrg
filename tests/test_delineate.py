@@ -167,3 +167,86 @@ class TestCLI:
         rc = main(["-i", str(tmp_path / "nope.tif"),
                    "-o", str(tmp_path / "o.tif"), "-q"])
         assert rc == 1
+
+
+class TestCrownCountReporting:
+    """The count printed by delineate() must not assume a background exists.
+
+    It was `len(np.unique(crowns)) - 1`, which subtracts one for label 0.
+    With mask_thresh below the CHM's minimum every pixel is canopy, no 0
+    appears, and two crowns were announced as one. The returned array was
+    always right; only the number a user reads was wrong.
+    """
+
+    @staticmethod
+    def _two_trees(base, gap):
+        """`base` lifts the whole scene; `gap` cuts a strip of true zero.
+
+        A Gaussian never reaches zero -- exp(-x) is tiny but positive -- so
+        a scene built from Gaussians alone has no pixel at or below
+        mask_thresh and therefore no background at all. The strip is what
+        makes the with-background case actually have one.
+        """
+        n = 40
+        yy, xx = np.mgrid[0:n, 0:n]
+        g = lambda r, c, h, s: h * np.exp(
+            -((yy - r) ** 2 + (xx - c) ** 2) / (2 * s ** 2))
+        chm = base + np.maximum(g(12, 12, 15, 5), g(28, 28, 14, 5))
+        if gap:
+            chm[19:22, :] = 0.0
+        return chm
+
+    @pytest.mark.parametrize("base,gap,has_background",
+                             [(0.0, True, True), (10.0, False, False)])
+    def test_reported_count_matches_the_array(self, base, gap, has_background,
+                                              capsys):
+        from pyhrg import CrownDelineator
+        chm = self._two_trees(base, gap)
+        d = CrownDelineator(chm, quiet=False)
+        crowns = d.smooth(ws=3).detect(hmin=5, ws=5).delineate(
+            variance_thresh=8.0, mask_thresh=0.0)
+
+        assert (0 in np.unique(crowns)) is has_background, \
+            "the fixture no longer exercises the case it was built for"
+
+        actual = len(set(np.unique(crowns)) - {0})
+        line = [l for l in capsys.readouterr().out.splitlines()
+                if "crowns" in l][-1]
+        assert f"{actual} crowns" in line, \
+            f"reported line {line!r} disagrees with {actual} crowns in the array"
+
+
+class TestTreeTopExportPosition:
+    """Exported points must land on the pixel centre, not its corner.
+
+    An affine transform maps grid coordinates whose whole numbers are pixel
+    *corners*, while a tree top from center_of_mass is an array index, and
+    array indices refer to pixel centres. Without the half-pixel shift every
+    exported point sat up and to the left -- 0.25 m on the 0.5 m test
+    rasters, systematic, and enough to matter against field-measured stems.
+    """
+
+    def test_points_match_rasterio_xy(self, tmp_path, chm_file):
+        rasterio = pytest.importorskip("rasterio")
+        pytest.importorskip("fiona")
+        import json
+        from rasterio.transform import xy
+        from pyhrg.io import save_tree_tops
+
+        path, _, _ = chm_file
+        with rasterio.open(path) as src:
+            transform, crs = src.transform, src.crs
+            chm = np.nan_to_num(src.read(1), nan=0.0)
+
+        # One whole-pixel top and one subpixel, since center_of_mass
+        # produces both and only the second catches a rounding fix.
+        tops = np.array([[3.0, 4.0], [5.25, 6.75]])
+        save_tree_tops(tops, str(tmp_path), "tt", transform, crs.to_wkt(),
+                       chm, driver="GeoJSON")
+
+        g = json.load(open(tmp_path / "tt_treetops.geojson"))
+        for feature, (r, c) in zip(g["features"], tops):
+            got = feature["geometry"]["coordinates"]
+            expected = xy(transform, r, c)
+            assert np.allclose(got, expected), \
+                f"top ({r}, {c}) written at {got}, pixel centre is {expected}"
