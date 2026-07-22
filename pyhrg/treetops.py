@@ -92,7 +92,15 @@ def detect_tops(chm, hmin=2.0, ws=3):
             f"{ws + 1}."
         )
 
-    local_max = ndimage.maximum_filter(chm, size=ws)
+    # -inf, not NaN, for the cells with no data. scipy's maximum_filter is
+    # undefined on NaN rather than NaN-aware: with the values 1..9 and one
+    # NaN it returned nan, 9 or 8 depending on where the NaN sat. -inf loses
+    # every comparison and drops out cleanly.
+    #
+    # A NaN pixel is never itself detected: NaN == anything is False, and so
+    # is NaN > hmin.
+    local_max = ndimage.maximum_filter(
+        np.where(np.isnan(chm), -np.inf, chm), size=ws)
     detected = (chm == local_max) & (chm > hmin)
     labels, num = ndimage.label(detected)
     centres = ndimage.center_of_mass(chm, labels, range(1, num + 1))

@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.5.0] — 2026-07-22
+
+### Fixed
+- **NaN was handed straight to `scipy.ndimage`, which is undefined on it
+  rather than NaN-aware.** With the nine values 1..9 and a single NaN,
+  `median_filter` returned 9, 5 or 4 depending on *where* in the window the
+  NaN sat, and `maximum_filter` returned nan, 9 or 8. A NaN-skipping median
+  would have been a constant 5.5. The comparison-based selection is poisoned
+  by NaN and picks an arbitrary element.
+
+  On `chm_150_2023.tif` that left **1208 pixels — 3 % of the raster —
+  smoothed to an arbitrary window value**, with **20 of 253 tree tops
+  standing on them** and errors against a NaN-skipping median of up to
+  **26.29 m**. Nothing raised, nothing warned; the output looked like a
+  canopy.
+
+  `smooth_chm()` and `detect_tops()` now skip NaN: window statistics are
+  taken over the cells that exist, and a window holding nothing but NaN
+  stays NaN. The fast path still runs whenever the CHM has no NaN, so a
+  clean raster costs nothing and gives byte-identical results to before.
+
+  Found while fixing rHRG, which crashed on the same input. Neither was
+  right: R failed loudly with an unhelpful message, Python produced
+  plausible garbage. Both now agree, and the shared cross-check gained ten
+  scenes with nodata holes so the path is actually covered.
+
+
 ## [0.4.0] — 2026-07-22
 
 ### Fixed
