@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.2] — 2026-07-22
+
+### Fixed
+- **A tree-top-out-of-bounds error crashed instead of explaining itself on a
+  cp1250 console.** The message read `({rows}×{cols})` with `×` as U+00D7;
+  on a Polish Windows console that raised `UnicodeEncodeError` while trying
+  to raise the `ValueError`, replacing a clear diagnostic with a `charmap`
+  traceback. The `×` is now `x`. `test_console_ascii.py` statically rejects
+  non-ASCII in any `print`/`raise`/`warn` string, so the next one fails in CI
+  rather than on a user's terminal.
+
+
 ## [0.5.1] — 2026-07-22
 
 ### Fixed

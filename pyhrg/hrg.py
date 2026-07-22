@@ -768,7 +768,7 @@ class HierarchicalRegionGrower:
             if not (0 <= r < rows and 0 <= c < cols):
                 raise ValueError(
                     f"tree top ({r}, {c}) lies outside the CHM "
-                    f"({rows}×{cols})"
+                    f"({rows}x{cols})"
                 )
         # 1) Create marker array
         markers = np.zeros_like(self.chm, dtype=np.int32)
