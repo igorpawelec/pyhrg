@@ -53,6 +53,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 import heapq
+import warnings
 from concurrent.futures import ProcessPoolExecutor
 from skimage.segmentation import watershed
 from skimage.morphology import opening, closing, disk
@@ -233,7 +234,7 @@ def _edges_to_csr_and_weights(edge_a_list, edge_b_list, num_regions,
 
 def _hierarchical_grow_single(seed_id, row_ptr, col_idx, weights,
                               reg_n, reg_mean, reg_var,
-                              var_threshold, max_iters=200,
+                              var_threshold, max_iters=None,
                               anneal_lambda=1.0, retry_rejected=False):
     """
     Grow a single seed region using:
@@ -246,8 +247,24 @@ def _hierarchical_grow_single(seed_id, row_ptr, col_idx, weights,
     reg_n, reg_mean, reg_var : per-region statistics (will NOT be modified).
     var_threshold : float
         Initial variance (σ²) threshold.
-    max_iters : int
-        Maximum grow iterations.
+    max_iters : int or None
+        Optional cap on grow iterations. ``None`` (the default since 0.3.0)
+        runs to natural termination, which is what the algorithm calls for
+        and is bounded anyway: every iteration either accepts a region --
+        finite, there are only so many -- or records a rejection.
+
+        It used to default to 200, and that bound bit. On
+        ``chm_33_2012.tif`` 332 of 492 crowns stopped there with candidates
+        still queued, and the reported crown count was 132 against 63 once
+        the cap was lifted: more than a factor of two in the headline
+        number, decided by a constant rather than by the canopy. The
+        boundaries barely moved (2.9% of the partition), because a
+        truncated grow blocks merges rather than misplacing pixels.
+
+        Nor did it buy speed. Natural termination needed at most 484
+        iterations on that scene and ran in 0.67 s against 2.34 s with the
+        cap, since twice as many surviving crowns cost more in conflict
+        arbitration than the extra merges cost in growing.
     anneal_lambda : float
         Annealing factor. 1.0 = no annealing (constant threshold).
         < 1.0 (e.g. 0.95) = threshold tightens each iteration.
@@ -300,7 +317,23 @@ def _hierarchical_grow_single(seed_id, row_ptr, col_idx, weights,
     # an approximation.
     rejected = set()
 
-    for iteration in range(max_iters):
+    iteration = -1
+    while True:
+        iteration += 1
+        if max_iters is not None and iteration >= max_iters:
+            # Deliberately free of the seed id: Python's default filter
+            # collapses identical messages from one line to a single
+            # warning, and a truncated grow is rarely a lone crown -- 332
+            # of 492 hit the old default of 200 on chm_33_2012.tif. With
+            # the id in the text every one of them would print.
+            warnings.warn(
+                f"max_iters={max_iters} was reached with candidates still "
+                f"queued, so at least one crown is truncated rather than "
+                f"finished. Raise it, or leave it None for natural "
+                f"termination.",
+                stacklevel=2,
+            )
+            break
         if not heap:
             break
 
@@ -659,7 +692,7 @@ class HierarchicalRegionGrower:
                 beta: float = 0.5,
                 gamma: float = 0.1,
                 anneal_lambda: float = 1.0,
-                max_iters: int = 200,
+                max_iters: int | None = None,
                 conflict_rule: str = "height",
                 protect_seeds: bool = False,
                 retry_rejected: bool = False,

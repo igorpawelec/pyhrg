@@ -180,3 +180,81 @@ class TestGrower:
         out = HierarchicalRegionGrower(chm).run_all(tops, variance_thresh=6.0,
                                                     mask_thresh=5.0)
         assert (out[chm < 1.0] == 0).all()
+
+
+class TestMaxItersDefault:
+    """Growth runs to natural termination unless told otherwise.
+
+    max_iters defaulted to 200 until 0.3.0, and it bit: on
+    chm_33_2012.tif 332 of 492 crowns stopped there with candidates still
+    queued, and the reported crown count was 132 against 63 once the cap
+    was lifted. The boundaries barely moved -- 2.9% of the partition --
+    because a truncated grow blocks merges rather than misplacing pixels,
+    so the damage was concentrated in the one number a forestry user
+    reads.
+
+    It bought nothing either: natural termination needed at most 484
+    iterations there and ran faster, since twice as many surviving crowns
+    cost more in conflict arbitration than the extra merges cost in
+    growing.
+    """
+
+    @staticmethod
+    def _scene():
+        rng = np.random.default_rng(5)
+        n = 90
+        yy, xx = np.mgrid[0:n, 0:n]
+        chm = np.zeros((n, n))
+        for _ in range(28):
+            r, c = rng.integers(6, n - 6, 2)
+            chm = np.maximum(chm, rng.uniform(12, 26) *
+                             np.exp(-((yy - r) ** 2 + (xx - c) ** 2) /
+                                    (2 * rng.uniform(3, 6) ** 2)))
+        return chm
+
+    def _tops(self, sm):
+        from pyhrg import detect_tops, as_pixels
+        return as_pixels(detect_tops(sm, hmin=5, ws=5))
+
+    def test_default_is_unbounded(self):
+        from pyhrg import HierarchicalRegionGrower
+        import inspect
+        sig = inspect.signature(HierarchicalRegionGrower.run_all)
+        assert sig.parameters["max_iters"].default is None
+
+    def test_a_binding_cap_warns(self):
+        from pyhrg import smooth_chm, HierarchicalRegionGrower
+        sm = smooth_chm(self._scene(), ws=3, method="median")
+        tops = self._tops(sm)
+        with pytest.warns(UserWarning, match="max_iters"):
+            HierarchicalRegionGrower(sm).run_all(
+                tops, variance_thresh=20.0, mask_thresh=1.0, max_iters=1)
+
+    def test_a_cap_that_does_not_bind_is_silent(self):
+        from pyhrg import smooth_chm, HierarchicalRegionGrower
+        import warnings
+        sm = smooth_chm(self._scene(), ws=3, method="median")
+        tops = self._tops(sm)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")          # any warning fails here
+            HierarchicalRegionGrower(sm).run_all(
+                tops, variance_thresh=20.0, mask_thresh=1.0, max_iters=10 ** 6)
+
+    def test_truncating_changes_the_crown_count(self):
+        """The point of the fix, stated as a test."""
+        from pyhrg import smooth_chm, HierarchicalRegionGrower
+        import warnings
+        sm = smooth_chm(self._scene(), ws=3, method="median")
+        tops = self._tops(sm)
+        full = HierarchicalRegionGrower(sm).run_all(
+            tops, variance_thresh=20.0, mask_thresh=1.0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cut = HierarchicalRegionGrower(sm).run_all(
+                tops, variance_thresh=20.0, mask_thresh=1.0, max_iters=2)
+        n_full = len(set(np.unique(full)) - {0})
+        n_cut = len(set(np.unique(cut)) - {0})
+        assert n_cut > n_full, (
+            "a truncated grow should leave more, smaller crowns; got "
+            f"{n_cut} against {n_full}"
+        )

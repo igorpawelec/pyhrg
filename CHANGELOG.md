@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.3.0] — 2026-07-22
+
+### Changed
+- **`max_iters` now defaults to `None`, meaning natural termination.** It was
+  200, and the bound bit: on `chm_33_2012.tif` 332 of 492 crowns stopped there
+  with candidates still queued, and the crown count read **132 against 63**
+  once the cap was lifted. More than a factor of two in the headline number,
+  decided by a constant rather than by the canopy.
+
+  The boundaries barely moved — 2.9 % of the partition — because a truncated
+  grow blocks merges rather than misplacing pixels. That is what made it hard
+  to notice: the segmentation looked right and the tree count did not.
+
+  The cap protected nothing. Growth is bounded anyway, since every iteration
+  either accepts a region or records a rejection and there are finitely many
+  of both, and natural termination needed at most 484 iterations on that scene
+  while running *faster* — 0.67 s against 2.34 s, because twice as many
+  surviving crowns cost more in conflict arbitration than the extra merges
+  cost in growing.
+
+  `delineate_crowns()` had its own default of 200 and now passes `None` too.
+  An explicit `max_iters` still works and warns when it binds; the message
+  carries no seed id, so Python's default filter collapses what would
+  otherwise have been 332 warnings into one.
+
 ## [0.2.0] — 2026-07-22
 
 ### Changed

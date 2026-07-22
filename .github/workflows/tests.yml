@@ -41,7 +41,7 @@ jobs:
         run: python -c "import pyhrg; print(pyhrg.__name__, pyhrg.__version__, pyhrg.__file__)"
 
       - name: Lint
-        run: python -m pyflakes pyhrg/
+        run: python -m pyflakes pyhrg/ tests/ examples/
 
       - name: Test
         run: python -m pytest -v

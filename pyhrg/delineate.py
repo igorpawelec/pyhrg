@@ -150,7 +150,7 @@ class CrownDelineator:
                   beta=0.5,
                   gamma=0.1,
                   anneal_lambda=1.0,
-                  max_iters=200,
+                  max_iters=None,
                   conflict_rule="height",
                   protect_seeds=False,
                   retry_rejected=False,
