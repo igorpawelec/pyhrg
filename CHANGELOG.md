@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.0] — 2026-07-22
+
+### Changed
+- **An even smoothing or detection window is now refused.** An even window
+  has no centre pixel, so `scipy.ndimage` places it half a pixel off and the
+  result depends on which way the raster happens to be oriented. Measured:
+  smoothing a 40x55 scene and its mirror image differed by up to 8.8 m at
+  `ws=4`; `detect_tops` on `chm_150_2023.tif` found 397 tops and 400 on the
+  mirror at `ws=4`, and 188 against 206 at `ws=6` — a 9 per cent difference
+  in the tree count from orientation alone.
+
+  `ws` was validated only as `>= 1`, and nothing in the output shows that it
+  happened, so this raises rather than warns. `method="gaussian"` is exempt:
+  `ws` only scales sigma there and the kernel stays symmetric.
+
+  The same guard went into rHRG, which reproduced the asymmetry faithfully.
+
+
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).

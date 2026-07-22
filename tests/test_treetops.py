@@ -122,3 +122,49 @@ class TestAsPixels:
 
     def test_empty(self):
         assert as_pixels(np.empty((0, 2))) == []
+
+
+class TestEvenWindowRejected:
+    """An even window has no centre pixel and sits half a pixel off.
+
+    Measured before the guard went in: smoothing a 40x55 scene and its
+    mirror image differed by up to 8.8 m at ws=4, and detect_tops found
+    397 tops against 400 on the mirror of chm_150_2023.tif at ws=4, and
+    188 against 206 at ws=6. Nobody chooses ws=4 intending a shifted
+    window, and nothing in the output shows that it happened.
+    """
+
+    @staticmethod
+    def _scene():
+        rng = np.random.default_rng(4)
+        return rng.random((40, 55)) * 20 + 5
+
+    @pytest.mark.parametrize("method", ["median", "mean", "maximum"])
+    @pytest.mark.parametrize("ws", [2, 4, 6])
+    def test_smooth_rejects_even_ws(self, method, ws):
+        with pytest.raises(ValueError, match="odd"):
+            smooth_chm(self._scene(), ws=ws, method=method)
+
+    def test_smooth_allows_even_ws_for_gaussian(self):
+        """ws only scales sigma there, so the kernel stays symmetric."""
+        sc = self._scene()
+        a = smooth_chm(sc, ws=4, method="gaussian")
+        b = smooth_chm(sc[:, ::-1], ws=4, method="gaussian")[:, ::-1]
+        np.testing.assert_allclose(a, b)
+
+    @pytest.mark.parametrize("ws", [2, 4, 6])
+    def test_detect_rejects_even_ws(self, ws):
+        with pytest.raises(ValueError, match="odd"):
+            detect_tops(self._scene(), hmin=5, ws=ws)
+
+    @pytest.mark.parametrize("method", ["median", "mean", "maximum", "gaussian"])
+    def test_odd_ws_is_orientation_independent(self, method):
+        sc = self._scene()
+        a = smooth_chm(sc, ws=5, method=method)
+        b = smooth_chm(sc[:, ::-1], ws=5, method=method)[:, ::-1]
+        np.testing.assert_allclose(a, b)
+
+    def test_detection_with_odd_ws_is_orientation_independent(self):
+        sc = self._scene()
+        assert len(detect_tops(sc, hmin=5, ws=5)) == \
+            len(detect_tops(sc[:, ::-1], hmin=5, ws=5))

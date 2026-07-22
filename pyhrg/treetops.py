@@ -78,6 +78,19 @@ def detect_tops(chm, hmin=2.0, ws=3):
         raise ValueError(f"chm must be 2-D, got shape {chm.shape}")
     if ws < 1:
         raise ValueError(f"ws must be >= 1, got {ws}")
+    # An even window has no centre pixel, so the "local maximum" test is
+    # taken over a window sitting half a pixel off, and the tree count then
+    # depends on the raster's orientation: on chm_150_2023.tif, ws=4 found
+    # 397 tops and 400 on the mirror image, ws=6 found 188 and 206. Refused
+    # rather than warned about, because the failure is invisible in the
+    # output.
+    if ws % 2 == 0:
+        raise ValueError(
+            f"ws must be odd, got {ws}. An even window has no centre pixel, "
+            f"so the local-maximum test sits half a pixel off and the tree "
+            f"count depends on the raster's orientation. Use {ws - 1} or "
+            f"{ws + 1}."
+        )
 
     local_max = ndimage.maximum_filter(chm, size=ws)
     detected = (chm == local_max) & (chm > hmin)
