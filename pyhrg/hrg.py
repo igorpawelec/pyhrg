@@ -53,6 +53,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 import heapq
+from typing import Optional
 import warnings
 from concurrent.futures import ProcessPoolExecutor
 from skimage.segmentation import watershed
@@ -692,7 +693,7 @@ class HierarchicalRegionGrower:
                 beta: float = 0.5,
                 gamma: float = 0.1,
                 anneal_lambda: float = 1.0,
-                max_iters: int | None = None,
+                max_iters: Optional[int] = None,
                 conflict_rule: str = "height",
                 protect_seeds: bool = False,
                 retry_rejected: bool = False,

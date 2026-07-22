@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.1] — 2026-07-22
+
+### Fixed
+- **0.5.0 did not import at all on Python 3.9.** `max_iters: int | None` is
+  PEP 604, which before 3.10 is a runtime expression: `TypeError: unsupported
+  operand type(s) for |: 'type' and 'NoneType'`, raised while the class body
+  executes, so `import pyhrg.hrg` failed outright. `pyproject.toml` claims
+  `requires-python = ">=3.9"`. Now `Optional[int]`.
+
+  It reached a tag because development runs on 3.12 and every local test
+  passed. `tests/test_python39_compat.py` now checks the package the way 3.9
+  would: no PEP 604 in annotations outside a module with
+  `from __future__ import annotations`, and every file `compile()`s — the
+  first attempt at this fix put the future import after three `__author__`
+  assignments, where `ast.parse` accepts it and Python does not.
+
+
 ## [0.5.0] — 2026-07-22
 
 ### Fixed
