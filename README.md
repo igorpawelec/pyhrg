@@ -131,7 +131,7 @@ python -m pyhrg --help
 | `morpho_radius` | 0 | Disk radius for opening/closing the mask. 0 = off |
 | `alpha`, `beta`, `gamma` | 1.0, 0.5, 0.1 | Edge weights: mean diff, σ diff, inverse border length |
 | `anneal_lambda` | 1.0 | Per-iteration tightening of the threshold. 1.0 = constant |
-| `max_iters` | 200 | Cap on grow iterations per seed |
+| `max_iters` | `None` | Cap on grow iterations per seed. `None` grows to natural termination |
 | `conflict_rule` | `'height'` | Who wins contested canopy — see below |
 | `protect_seeds` | `False` | If True, no tree is ever absorbed; every top yields a crown |
 | `retry_rejected` | `False` | Reconsider regions rejected earlier in the same grow |
